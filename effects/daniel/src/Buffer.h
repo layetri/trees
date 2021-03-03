@@ -5,10 +5,11 @@
 #ifndef SNOWSTORM_BUFFER_H
 #define SNOWSTORM_BUFFER_H
 
+#include <string>
 
 class Buffer {
 public:
-    Buffer(int length);
+    Buffer(int length, std::string name);
     ~Buffer();
 
     void write(float sample);
@@ -28,6 +29,7 @@ private:
     float *data;
     int size;
     int position;
+    std::string name;
 };
 
 #endif //SNOWSTORM_BUFFER_H

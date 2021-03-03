@@ -34,44 +34,60 @@ int main(int argc, char* argv[]) {
   cout << color("System says: ", 32) << "Welcome to localenv. Type " << color("help", 36) << " to get started.\n ";
   cout << color("System says: ", 32) << color("Have a wonderful time! ✨ \n\n", 33);
 
-  Buffer input(samplerate * 10);
-  Buffer revBus(samplerate * 10);
-  Buffer output(samplerate * 10);
 
-  LowPassFilter filter(150.0, samplerate, &input, &output);
 
-  DelayLine dl1(400, 0.77, samplerate, &input);
-  DelayLine dl2(241, 0.89, samplerate, &input);
-  DelayLine dl3(134, 0.94, samplerate, &input);
+  Buffer input(samplerate * 10, "input");
+  Buffer revBus(samplerate * 10, "revbus");
+  Buffer output(samplerate * 10, "output");
 
-  //Reverb reverb(1.0, samplerate, &revBus, &output);
+  LowPassFilter filter(5000.0, samplerate, &input, &output);
+  filter.setFrequency(2000.0);
+
+//  DelayLine dl1(2000, 0.77, &input);
+//  DelayLine dl2(689, 0.89, &input);
+//  DelayLine dl3(443, 0.94, &input);
+
+  Reverb reverb(2000, samplerate, &revBus, &output);
 
   float gain = 0.9;
+  bool mute = false;
 
   //assign a function to the JackModule::onProcess
-  jack.onProcess = [&filter, &dl1, &dl2, &dl3, &input, &output, gain](jack_default_audio_sample_t *inBuf,
+  jack.onProcess = [&filter, &reverb, &revBus, &input, &output, gain, mute](jack_default_audio_sample_t *inBuf,
                            jack_default_audio_sample_t *outBuf, jack_nframes_t nframes) {
       for(int i = 0; i < nframes; i++) {
-        float smp;
+        float smp, rt;
 
-        input.write(inBuf[i]);
+        if(mute) {
+          input.write(0.0);
+          revBus.write(0.0);
+        } else {
+          input.write(inBuf[i]);
+          revBus.write(inBuf[i]);
+        }
+
+        //smp = filter.process();
+
+        reverb.process();
+
+//        rt = (smp + dl1.process() + dl2.process() + dl3.process()) / 4;
+
+//        outBuf[i] = (filter.process() + output[i]) * gain * 0.5;
+//        cout << output.getCurrentSample() << endl;
+//        outBuf[i] = revBus[i] * gain;
+//        outBuf[i] = smp * gain;
+        outBuf[i] = (input.getCurrentSample() * 0.6 + output.getCurrentSample() * 0.4) * gain;
+
+        reverb.tick();
+        //filter.tick();
+
         input.tick();
-
-        //revBus.write(filter.process());
-        //reverb.process();
-
-        smp = (filter.process() + dl1.process() + dl2.process() + dl3.process()) / 4;
-
-//        outBuf[i] = output[i] * gain;
-        outBuf[i] = smp * gain;
-
-        //reverb.tick();
-        filter.tick();
+        revBus.tick();
         output.tick();
-
-        dl1.tick();
-        dl2.tick();
-        dl3.tick();
+//
+//        dl1.tick();
+//        dl2.tick();
+//        dl3.tick();
       }
       return 0;
   };
@@ -91,6 +107,9 @@ int main(int argc, char* argv[]) {
       cout <<
            color("play", 35) << "        play noise thing using keyboard commands" << endl <<
            color("exit", 35) << "        exit the program" << endl;
+    }
+    else if(command == "mute") {
+      mute = !mute;
     }
     else if(command == "getf") {
       cout << filter.getFrequency() << endl;

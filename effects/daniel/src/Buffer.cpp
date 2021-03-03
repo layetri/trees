@@ -4,10 +4,13 @@
 
 #include "Buffer.h"
 
-Buffer::Buffer(int length) {
+#include <iostream>
+
+Buffer::Buffer(int length, std::string name) {
   data = new float[length];
   size = length;
   position = 0;
+  this->name = name;
 }
 
 Buffer::~Buffer() {
@@ -39,6 +42,7 @@ void Buffer::tick() {
     position++;
   } else {
     position -= size;
+    //std::cout << position << ", " << size << ": Buffer returning (" << name << ", " << getCurrentSample() << ")" << std::endl;
   }
 }
 

@@ -26,20 +26,15 @@ class Reverb {
 
     LowPassFilter *lpf;
 
-    DelayLine *dl1;
-    DelayLine *dl2;
-    DelayLine *dl3;
-    DelayLine *dl4;
+    DelayLine *dl[10];
 
+    int dl_size;
+    int samplerate;
     float tail;
     float sample;
 
     // Gain ratios
     float n1, n2, n3, n4;
-
-    // Delay times, feedback ratios
-    float fb1, fb2, fb3, fb4;
-    int dt1, dt2, dt3, dt4;
 };
 
 

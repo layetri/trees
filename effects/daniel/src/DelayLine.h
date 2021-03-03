@@ -10,12 +10,15 @@
 
 class DelayLine {
   public:
-    DelayLine(int delayTime, float feedback, int samplerate, Buffer *input);
+    DelayLine(int delayTime, float feedback, Buffer *input);
     ~DelayLine();
 
     float process();
     void tick();
+
     void setDelayTime(int delayTime);
+    int getDelayTime();
+
     void setdf(int delayTime, float feedback);
 
   protected:

@@ -3,13 +3,15 @@
 //
 
 #include "DelayLine.h"
+#include <iostream>
 
-DelayLine::DelayLine(int delayTime, float feedback, int samplerate, Buffer *input) {
+DelayLine::DelayLine(int delayTime, float feedback, Buffer *input) {
+  this->delayTime = delayTime;
   this->feedback = feedback;
   position = 0;
 
   x = input;
-  y = new Buffer(samplerate * 10);
+  y = new Buffer(input->getSize(), "DelayLine");
 }
 
 DelayLine::~DelayLine() {
@@ -21,6 +23,7 @@ void DelayLine::tick() {
   if(position < x->getSize()) {
     position++;
   } else {
+    //std::cout << x->getSize() << "," << position << ": Delay line buffer wrap @ " << delayTime << std::endl;
     position -= x->getSize();
   }
 }
@@ -28,7 +31,7 @@ void DelayLine::tick() {
 float DelayLine::process() {
   float sample;
   // Run the delay line
-  sample = x->getSample(position - delayTime) + (y->getSample(position - delayTime) * feedback);
+  sample = x->getSample(position - delayTime) + ((y->getSample(position - delayTime - 1) + y->getSample(position - delayTime)) * 0.5 * feedback);
 
   // Store the sample in the output buffer
   y->write(sample);
@@ -45,4 +48,8 @@ void DelayLine::setDelayTime(int delayTime) {
 void DelayLine::setdf(int delayTime, float feedback) {
   this->delayTime = delayTime;
   this->feedback = feedback;
+}
+
+int DelayLine::getDelayTime() {
+  return delayTime;
 }

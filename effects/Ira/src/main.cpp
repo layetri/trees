@@ -2,6 +2,7 @@
 #include <thread>
 #include "jack_module.h"
 #include "math.h"
+#include "Pan.h"
 /*
  * NOTE: jack2 needs to be installed
  * jackd invokes the JACK audio server daemon
@@ -21,48 +22,50 @@ int main(int argc,char **argv)
   // init the jack, use program name as JACK client name
   jack.init("example");
 
-  float delayBuffer1[DELAY_SIZE];
-  float delayBuffer2[DELAY_SIZE];
-  int writeHead = 0;
-  int readHead = 0;
-  float pan = -1;
+  float panning = -1;
   	//   float pan = -0.6; //-1 = L, 1 = R
 	  // float angle = 28; //Graden
-
+    Pan mypan(angleDeg, panning);
   //assign a function to the JackModule::onProces
-  jack.onProcess = [&delayBuffer1, &delayBuffer2, &writeHead, &readHead, &pan](jack_default_audio_sample_t *inBuf,
+  jack.onProcess = [&mypan, &panning](jack_default_audio_sample_t *inBuf,
     jack_default_audio_sample_t *outBufL,jack_default_audio_sample_t *outBufR, jack_nframes_t nframes) {
 
-  	for(unsigned int i = 0; i < nframes; i++){
-  		pan = pan + 0.00001;
-  		if(pan > 1)
-  			pan = -1;
+    for(unsigned int i = 0; i < nframes; i++){
+        panning = panning + 0.00001;
+      if(panning > 1)
+        panning = -1;
 
-  		float angle = angleDeg / 360.;
-		float anglePan = pan * (tan(PI_2 * angle));
-		float afstand = (1 / cos(PI_2 * angle));
+     // outBufL[i] = inBuf[i] * gainL;
+     // outBufR[i] = inBuf[i] * gainR;
+		// float angle = angleDeg / 360.;
+		// float anglePan = pan * (tan(PI_2 * angle));
+		// float afstand = (1 / cos(PI_2 * angle));
 		
-		float a = sqrt(anglePan * anglePan + 1);
-		float b = atan(anglePan)/PI_2;
+		// float a = sqrt(anglePan * anglePan + 1);
+		// float b = atan(anglePan)/PI_2;
   		
-		float gainL = (cos((b+angle)*PI_2)*afstand/a*2/(afstand+1));
-		float gainR = (cos((b-angle)*PI_2)*afstand/a*2/(afstand+1));
+		// float gainL = (cos((b+angle)*PI_2)*afstand/a*2/(afstand+1));
+		// // float gainR = (cos((b-angle)*PI_2)*afstand/a*2/(afstand+1));
 
-		if(gainL < 0)
-			gainL = 0;
-		if(gainR < 0)
-			gainR = 0; 
+		// if(gainL < 0)
+		// 	gainL = 0;
+		// if(gainR < 0)
+		// 	gainR = 0; 
 
-  		outBufL[i] = inBuf[i] * gainL;
-  		outBufR[i] = inBuf[i] * gainR;
+    outBufL[i] = inBuf[i] * mypan.gainCalL(angleDeg, panning);
+    outBufR[i] = inBuf[i] * mypan.gainCalR(angleDeg, panning);
   		
-  		std::cout << pan << std::endl;
-  		std::cout << gainL << ":-:" << gainR << std::endl;
+  		// std::cout << pan << std::endl;
+  		// std::cout << outBufL[i] << ":-:" << outBufR[i] << std::endl;
   	}
-
     return 0;
   };
 
+  // mypan.setangleDeg(angleDeg);
+  // mypan.setpanning(panning);
+
+  // mypan.getangleDeg();
+  // mypan.getangleDeg();
 
   jack.autoConnect();
 
@@ -77,6 +80,17 @@ int main(int argc,char **argv)
         running = false;
         jack.end();
         break;
+      // zzzcase 'p':
+
+      //   std::cout << "welkom" << std::endl;
+      //   // std::cin << angleDeg;
+      //   // std::cin << panning;
+
+      //   mypan.setangleDeg(angleDeg);
+      //   mypan.setpanning(panning);
+        
+      //   mypan.getangleDeg();
+      //   mypan.getangleDeg();
     }
   }
 

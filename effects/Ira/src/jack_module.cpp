@@ -53,7 +53,7 @@ int JackModule::init(std::string clientName)
 
   // install a shutdown callback
   jack_on_shutdown(client,jack_shutdown,0);
-  // Install the callback wrapper
+  // Install the callback w1rapper
   jack_set_process_callback(client,_wrap_jack_process_cb,this);
 
   //Create an output and input port for the client.
@@ -75,7 +75,6 @@ int JackModule::init(std::string clientName)
 
 //returns the jack_clients samplerate
 unsigned long JackModule::getSamplerate()
-{
   return jack_get_sample_rate(client);
 } // getSamplerate()
 
@@ -103,12 +102,12 @@ void JackModule::autoConnect()
     exit(1);
   }
 
-  if(jack_connect(client,jack_port_name(output_port1),ports[1]))
+  if(jack_connect(client,jack_port_name(output_port0),ports[0]))
   {
     std::cout << "Cannot connect output ports" << std::endl;
   }
 
-  if(jack_connect(client,jack_port_name(output_port1),ports[0]))
+  if(jack_connect(client,jack_port_name(output_port1),ports[1]))
   {
     std::cout << "Cannot connect output ports" << std::endl;
   }

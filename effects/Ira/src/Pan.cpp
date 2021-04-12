@@ -2,7 +2,7 @@
 #include "jack_module.h"
 #include "math.h"
 
-Pan::Pan(int angleDeg, float panning)
+Pan::Pan()
 {     
 }
 

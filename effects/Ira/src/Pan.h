@@ -6,7 +6,7 @@
 class Pan
 {
 public:
-	Pan(int angleDeg, float pan);
+	Pan();
 	~Pan();
 
 //setters

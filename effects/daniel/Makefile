@@ -1,7 +1,7 @@
 # ✨ Daniël Kamp's supersonic Makefile, oh yeah ✨
 
 CC=g++
-CFLAGS = -I/usr/local/include -Wall -std=c++14
+CFLAGS = -I/usr/local/include -Wall -std=c++1z
 LDFLAGS= -ljack
 
 SRC_DIR=src

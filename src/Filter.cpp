@@ -14,7 +14,7 @@ Filter::Filter(float frequency, int samplerate, Buffer *input, Buffer *output) {
   // Set samplerate, buffer_size and defaults
   this->samplerate = samplerate;
   buffer_size = input->getSize();
-  sample = 0.0;
+  sample = 0;
   index = 0;
 
   setFrequency(frequency);
@@ -33,7 +33,7 @@ void Filter::tick() {
 }
 
 // Calculate the sample on the subclass and write to output stream
-float Filter::process() {
+int16_t Filter::process() {
   sample = calculateSample();
   output->write(sample);
 
@@ -62,5 +62,5 @@ int Filter::getDelay() {
 }
 
 // Placeholder functions, override in subclasses
-float Filter::calculateSample() {return 0.0;}
+int16_t Filter::calculateSample() {return 0;}
 void Filter::frequencyHandler() {}

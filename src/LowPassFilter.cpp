@@ -11,7 +11,7 @@ LowPassFilter::LowPassFilter(float frequency, int samplerate, Buffer *input, Buf
 
 LowPassFilter::~LowPassFilter() {}
 
-float LowPassFilter::calculateSample() {
+int16_t LowPassFilter::calculateSample() {
   return b0 * input->getSample(index) + b1 * input->getSample(index - 1) + b2 * input->getSample(index - 1) + a1 * output->getSample(index - 1) + a2 * output->getSample(index - 2);
 }
 

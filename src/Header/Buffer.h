@@ -6,27 +6,37 @@
 #define SNOWSTORM_BUFFER_H
 
 #include <string>
+#include "Global.h"
+
+#if defined(PLATFORM_TEENSY_40)
+  #include <Arduino.h>
+#elif defined(PLATFORM_DARWIN_X86)
+  #include <cmath>
+  #include <cstdint>
+#endif
 
 class Buffer {
 public:
     Buffer(int length, std::string name);
     ~Buffer();
 
-    void write(float sample);
-    int getSize();
+    void write(int16_t sample);
+    void writeAhead(int16_t sample, int places);
 
     int getPosition();
-
-    float getSample(int sample_position);
-    float getCurrentSample();
+    int getSize();
     void tick();
 
-    float& operator[] (int index) {
+    int16_t getSample(int sample_position);
+    int16_t getCurrentSample();
+    int16_t readAhead(int places);
+
+    int16_t& operator[] (int index) {
       return data[index];
     }
 
 private:
-    float *data;
+    int16_t *data;
     int size;
     int position;
     std::string name;

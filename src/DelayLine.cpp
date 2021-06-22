@@ -28,8 +28,8 @@ void DelayLine::tick() {
   }
 }
 
-float DelayLine::process() {
-  float sample;
+int16_t DelayLine::process() {
+  int16_t sample;
   // Run the delay line
   sample = x->getSample(position - delayTime) + ((y->getSample(position - delayTime - 1) + y->getSample(position - delayTime)) * 0.5 * feedback);
 

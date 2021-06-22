@@ -13,7 +13,7 @@ class LowPassFilter : public Filter {
     LowPassFilter(float, int, Buffer*, Buffer*);
     ~LowPassFilter();
 
-    float calculateSample() override;
+    int16_t calculateSample() override;
     void frequencyHandler() override;
 
   private:

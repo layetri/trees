@@ -53,7 +53,7 @@ void Reverb::tick() {
 }
 
 void Reverb::process() {
-  float smp = 0.0;
+  int16_t smp = 0;
 
   for(int i = 0; i < dl_size; i++) {
     smp += dl[i]->process();

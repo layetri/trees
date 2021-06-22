@@ -7,28 +7,35 @@
 
 #include <iostream>
 #include "Buffer.h"
+#include "Global.h"
 
+#if defined(PLATFORM_TEENSY_40)
+  #include <Arduino.h>
+#elif defined(PLATFORM_DARWIN_X86)
+  #include <cmath>
+  #include <cstdint>
+#endif
 
 class Filter {
 public:
     Filter(float frequency, int samplerate, Buffer *input, Buffer *output);
     virtual ~Filter();
 
-    float process();
+    int16_t process();
     void tick();
 
     void setFrequency(float frequency);
     float getFrequency();
     int getDelay();
 
-    virtual float calculateSample();
+    virtual int16_t calculateSample();
     virtual void frequencyHandler();
 
 protected:
     Buffer *input;
     Buffer *output;
     float frequency;
-    float sample;
+    int16_t sample;
     double ff;
 
     int samplerate;

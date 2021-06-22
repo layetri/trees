@@ -4,10 +4,8 @@
 
 #include "Header/Buffer.h"
 
-#include <iostream>
-
 Buffer::Buffer(int length, std::string name) {
-  data = new float[length];
+  data = new int16_t [length];
   size = length;
   position = 0;
   this->name = name;
@@ -25,7 +23,10 @@ int Buffer::getPosition() {
   return position;
 }
 
-float Buffer::getSample(int sample_position) {
+int16_t Buffer::getSample(int sample_position) {
+//  int pos = ((sample_position > size || (sample_position * -1) > size) * sample_position % size) +
+//      ((sample_position < size && (sample_position * -1) < size) * sample_position);
+
   if(sample_position < 0) {
     return this->operator[](size + sample_position);
   } else {
@@ -33,7 +34,7 @@ float Buffer::getSample(int sample_position) {
   }
 }
 
-float Buffer::getCurrentSample() {
+int16_t Buffer::getCurrentSample() {
   return this->operator[](position);
 }
 
@@ -42,10 +43,17 @@ void Buffer::tick() {
     position++;
   } else {
     position -= size;
-    //std::cout << position << ", " << size << ": Buffer returning (" << name << ", " << getCurrentSample() << ")" << std::endl;
   }
 }
 
-void Buffer::write(float sample) {
+void Buffer::write(int16_t sample) {
   data[position] = sample;
+}
+
+void Buffer::writeAhead(int16_t sample, int places) {
+  data[position + places] = sample;
+}
+
+int16_t Buffer::readAhead(int places) {
+  return data[position + places];
 }

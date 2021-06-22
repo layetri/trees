@@ -56,3 +56,11 @@ float Pan::gainCalR(float angleDeg, float panning)
 	std::cout << "R: " << gainR << std::endl;
 	return gainR;
 }
+
+float *Pan::getSample() {
+  return nullptr;
+}
+
+void Pan::tick() {
+
+}

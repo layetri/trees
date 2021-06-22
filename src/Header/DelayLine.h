@@ -7,13 +7,21 @@
 
 #include "Buffer.h"
 #include "LowPassFilter.h"
+#include "Global.h"
+
+#if defined(PLATFORM_TEENSY_40)
+  #include <Arduino.h>
+#elif defined(PLATFORM_DARWIN_X86)
+  #include <cmath>
+  #include <cstdint>
+#endif
 
 class DelayLine {
   public:
     DelayLine(int delayTime, float feedback, Buffer *input);
     ~DelayLine();
 
-    float process();
+    int16_t process();
     void tick();
 
     void setDelayTime(int delayTime);

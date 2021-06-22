@@ -7,6 +7,14 @@
 
 #include "DelayLine.h"
 #include "LowPassFilter.h"
+#include "Global.h"
+
+#if defined(PLATFORM_TEENSY_40)
+  #include <Arduino.h>
+#elif defined(PLATFORM_DARWIN_X86)
+  #include <cmath>
+  #include <cstdint>
+#endif
 
 class Reverb {
   public:
@@ -31,7 +39,7 @@ class Reverb {
     int dl_size;
     int samplerate;
     float tail;
-    float sample;
+    int16_t sample;
 };
 
 

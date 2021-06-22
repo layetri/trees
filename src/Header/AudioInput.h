@@ -5,18 +5,24 @@
 #ifndef CAVES_AUDIOINPUT_H
 #define CAVES_AUDIOINPUT_H
 
-//#include <Arduino.h>
+#include "Global.h"
 
-class AudioInput {
-  public:
-    AudioInput(int pin);
-    ~AudioInput();
+#ifdef PLATFORM_TEENSY_40
+  //#include <Arduino.h>
 
-    int getSample();
+  class AudioInput {
+    public:
+      AudioInput(int pin);
+      ~AudioInput();
 
-  private:
-    int pin;
-    int sample;
-};
+      int getSample();
 
+    private:
+      int adjust(int);
+      int scale(int);
+
+      int pin;
+      int sample;
+  };
+#endif
 #endif //CAVES_AUDIOINPUT_H

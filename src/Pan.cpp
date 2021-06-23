@@ -1,66 +1,62 @@
 #include "Header/Pan.h"
 #define TWO_PI (2 * M_PI)
 
-Pan::Pan()
-{     
+PanningInterface::PanningInterface(Buffer** buffers, Buffer* n_output_left, Buffer* n_output_right) {
+  output_left = n_output_left;
+  output_right = n_output_right;
+
+  // Initialize desired number of input channels
+  for(int i = 0; i < NUM_INPUTS; i++) {
+    objects[i] = new SpatialObject(buffers[i], output_left, output_right);
+  }
 }
 
-Pan::~Pan()
-{
+PanningInterface::~PanningInterface() {
+  delete output_left;
+  delete output_right;
+
+  for(auto& item : objects) {
+    delete item;
+  }
 }
 
-void Pan::setangleDeg(float angleDeg)
-{
-	this -> angleDeg = angleDeg;
+void PanningInterface::setAngle(float n_angle_degrees) {
+	angle_degrees = n_angle_degrees;
+
+	// Use the angle in degrees to calculate various parameters
+	angle = angle_degrees / 360.0f;
+	distance = (float) (1 / cos(TWO_PI * angle));
+	updateAnglePanning();
 }
 
-void Pan::setpanning(float panning)
-{
-	this -> panning = panning;
+void PanningInterface::setPanning(float n_panning) {
+	panning = n_panning;
+	updateAnglePanning();
 }
 
-float Pan::getangleDeg()
-{
-	return angleDeg;
+void PanningInterface::updateAnglePanning() {
+  angle_panning = panning * tan(TWO_PI * angle);
+  a = sqrt(angle_panning * angle_panning + 1);
+  b = atan(angle_panning) / TWO_PI;
 }
 
-float Pan::getpanning()
-{
-	return panning;
-}
-
-float Pan::gainCalL(float angleDeg, float panning)
-{
-	float angle = angleDeg / 360.;
-	float anglePan = panning * (tan(TWO_PI * angle));
-	float afstand = (1 / cos(TWO_PI * angle));
-
-	float a = sqrt(anglePan * anglePan + 1);
-	float b = atan(anglePan)/TWO_PI;
-
-	float gainL = (cos((b+angle)*TWO_PI)*afstand/a*2/(afstand+1));
-	std::cout << "L: " << gainL << std::endl;
+float PanningInterface::gainCalL() {
+	gainL = (float) (cos((b + angle) * TWO_PI) * distance / a * 2 / (distance + 1));
 	return gainL;
 }
 
-float Pan::gainCalR(float angleDeg, float panning)
-{
-	float angle = angleDeg / 360.;
-	float anglePan = panning * (tan(TWO_PI * angle));
-	float afstand = (1 / cos(TWO_PI * angle));
-
-	float a = sqrt(anglePan * anglePan + 1);
-	float b = atan(anglePan)/TWO_PI;
-
-	float gainR = (cos((b-angle)*TWO_PI)*afstand/a*2/(afstand+1));
-	std::cout << "R: " << gainR << std::endl;
+float PanningInterface::gainCalR() {
+	gainR = (float) (cos((b - angle) * TWO_PI) * distance / a * 2 / (distance + 1));
 	return gainR;
 }
 
-float *Pan::getSample() {
-  return nullptr;
+float *PanningInterface::getSample() {
+  float smp[2] = {0.0, 0.0};
+  return smp;
 }
 
-void Pan::tick() {
-
+void PanningInterface::tick() {
+  for(auto& channel : objects) {
+    channel->processOutputSample();
+  }
 }

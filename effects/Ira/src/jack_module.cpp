@@ -74,7 +74,7 @@ int JackModule::init(std::string clientName)
 } // init()
 
 //returns the jack_clients samplerate
-unsigned long JackModule::getSamplerate()
+unsigned long JackModule::getSamplerate() {
   return jack_get_sample_rate(client);
 } // getSamplerate()
 

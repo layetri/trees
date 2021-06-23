@@ -1,10 +1,20 @@
+//
+// Original by Ira Helfferich [../effects/ira/src/Pan.h]
+// Extended and finished by Daniël Kamp
+//
+
 #ifndef _PAN_H_
 #define _PAN_H_
 
-#include <iostream>
-#include <math.h>
+// Include global dependencies
 #include "Global.h"
 
+// Include project dependencies
+#include "Buffer.h"
+#include "Analyzer.h"
+#include "SpatialObject.h"
+
+// Include platform dependencies
 #if defined(PLATFORM_TEENSY_40)
   #include <Arduino.h>
 #elif defined(PLATFORM_DARWIN_X86)
@@ -12,33 +22,32 @@
   #include <cstdint>
 #endif
 
-class Pan
-{
-public:
-	Pan();
-	~Pan();
+// Interface to all general panning functions
+class PanningInterface {
+  public:
+	  PanningInterface(Buffer** input_buffers, Buffer* output_left, Buffer* output_right);
+	  ~PanningInterface();
 
-//setters
-	void setangleDeg(float angleDeg);
-	void setpanning(float panning);
-//getters
-	float getangleDeg();
-	float getpanning();
+    //setters
+	  void setAngle(float angle_degrees);
+	  void setPanning(float panning);
+	  void updateAnglePanning();
 
-	float* getSample();
-	void tick();
-//Methods
-	float gainCalL(float angleDeg, float panning);
-	float gainCalR(float angleDeg, float panning);
-protected:
-	float angle;
-	float afstand;
-	float a;
-	float b;
-	float angleDeg;
-	float panning;
-	float gainL;
-	float gainR;
+	  float* getSample();
+	  void tick();
+
+    //Methods
+	  float gainCalL();
+	  float gainCalR();
+  protected:
+    SpatialObject* objects[NUM_INPUTS];
+    Buffer* output_left;
+    Buffer* output_right;
+
+    float angle, distance, panning;
+    float a, b;
+    float angle_degrees, angle_panning;
+    float gainL, gainR;
 };
 
 #endif

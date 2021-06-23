@@ -5,6 +5,18 @@
 #ifndef CAVES_GLOBAL_H
 #define CAVES_GLOBAL_H
 
+// Project-specific global code goes here!
+#define NUM_INPUTS 6
+
+#include <complex>
+#include <valarray>
+typedef std::complex<double> Complex;
+typedef std::valarray<Complex> CArray;
+
+// =======================================
+//  Global.h - Developer Tools
+//  © 2021 Daniël Kamp
+// =======================================
 #define DEVMODE
 // Set platform to Darwin x86 (macOS)
 #define PLATFORM_DARWIN_X86

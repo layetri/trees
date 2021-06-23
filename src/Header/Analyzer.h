@@ -5,14 +5,11 @@
 #ifndef CAVES_ANALYZER_H
 #define CAVES_ANALYZER_H
 
-#include <complex>
-#include <valarray>
 #include <cmath>
 
 #include "Buffer.h"
-
-typedef std::complex<double> Complex;
-typedef std::valarray<Complex> CArray;
+#include "Global.h"
+#include <iostream>
 
 class Analyzer {
   public:
@@ -20,11 +17,14 @@ class Analyzer {
     ~Analyzer();
 
     void process();
-    CArray fft(CArray& chunk);
+    Complex getComplexPair();
+    void fft(CArray& chunk);
 
   private:
     Buffer* buffer;
 
+    Complex value_pair;
+    double x, y, z;
     int fft_size;
 };
 

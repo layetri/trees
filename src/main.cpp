@@ -52,7 +52,6 @@
   #include "Header/jack_module.h"
 
   #define angleDeg 45
-  #define NUM_INPUTS 6
 
   int main() {
     // Do Jack setup
@@ -65,8 +64,6 @@
 
     // Create input array for 6 input channels
     Buffer* inputs[6];
-    Analyzer* analyzers[6];
-
     ControllerInterface ci;
 
     // TODO: make universal Keymap class with "target" and "callback" arguments
@@ -76,35 +73,27 @@
 
     for(int i = 0; i < NUM_INPUTS; i++) {
       inputs[i] = new Buffer(samplerate * 10, &"input-"[i]);
-      analyzers[i] = new Analyzer(256, inputs[i]);
     }
 
     Buffer outputL(samplerate * 10, "output_L");
     Buffer outputR(samplerate * 10, "output_R");
 
-//    LowPassFilter filterL(5000.0, samplerate, &inputL, &outputL);
-//    LowPassFilter filterR(5000.0, samplerate, &inputR, &outputR);
-//    filterL.setFrequency(500.0);
-//    filterR.setFrequency(500.0);
-
     // Initialize panning component
     float panning = -1;
-    Pan panner;
+    PanningInterface panner(inputs, &outputL, &outputR);
 
     // Assign the Jack callback function
-    jack.onProcess = [&panner, &inputs, &analyzers](
+    jack.onProcess = [&panner, &inputs](
         jack_default_audio_sample_t **inBufArray,
         jack_default_audio_sample_t *outBuf_L,
         jack_default_audio_sample_t *outBuf_R,
         jack_nframes_t nframes
       ) {
-        verbose("Jack callback");
         for(unsigned int i = 0; i < nframes; i++) {
           float smp[2] = {0.0, 0.0};
 
           for(int j = 0; j < NUM_INPUTS; j++) {
             inputs[j]->write(inBufArray[j][i]);
-            analyzers[j]->process();
           }
 
           // TODO: fix Panner.getSample()

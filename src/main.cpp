@@ -1,12 +1,13 @@
 #include <iostream>
 
 #include "Header/Global.h"
-
-#include "Header/Pan.h"
-#include "Header/Analyzer.h"
-#include "Header/LowPassFilter.h"
-
 #include "Header/Buffer.h"
+
+#include "Header/LowPassFilter.h"
+#include "Header/PanningInterface.h"
+#include "Header/Reverb.h"
+
+#include "Header/TestSynth.h"
 
 #if defined(PLATFORM_TEENSY_40)
   #include "Header/AudioInput.h"
@@ -56,7 +57,7 @@
   int main() {
     // Do Jack setup
     JackModule jack;
-    jack.init("synth");
+    jack.init("caves");
     int samplerate = jack.getSamplerate();
     if(samplerate == 0) {
       samplerate = 44100;
@@ -64,59 +65,90 @@
 
     // Create input array for 6 input channels
     Buffer* inputs[6];
+    for(int i = 0; i < NUM_INPUTS; i++) {
+      inputs[i] = new Buffer(samplerate, &"input-"[i]);
+    }
+
+    // Initialize output busses and FX
+    Buffer revBusL(samplerate * 10, "revbus_L");
+    Buffer revBusR(samplerate * 10, "revbus_R");
+    Buffer outputL(samplerate, "output_L");
+    Buffer outputR(samplerate, "output_R");
+
+    Reverb reverb_L(4000., samplerate, &revBusL, &outputL);
+    Reverb reverb_R(4000., samplerate, &revBusR, &outputR);
+
+
+    // For testing purposes, initialize internal synth
+    Synth voice1(220.0, samplerate, inputs[0]);
+
+
+    // Initialize panning component
+    float panning = -1;
+    PanningInterface panner(inputs, &revBusL, &revBusR);
+
     ControllerInterface ci;
+
 
     // TODO: make universal Keymap class with "target" and "callback" arguments
     ci.import(new Keymap('e'));
     ci.import(new Keymap('q'));
     ci.import(new Keymap('w'));
 
-    for(int i = 0; i < NUM_INPUTS; i++) {
-      inputs[i] = new Buffer(samplerate * 10, &"input-"[i]);
-    }
-
-    Buffer outputL(samplerate * 10, "output_L");
-    Buffer outputR(samplerate * 10, "output_R");
-
-    // Initialize panning component
-    float panning = -1;
-    PanningInterface panner(inputs, &outputL, &outputR);
+    bool bypass = false;
 
     // Assign the Jack callback function
-    jack.onProcess = [&panner, &inputs](
+    jack.onProcess = [&panner, &inputs, &revBusL, &revBusR, &outputL, &outputR, &reverb_L, &reverb_R, &bypass, &voice1](
         jack_default_audio_sample_t **inBufArray,
         jack_default_audio_sample_t *outBuf_L,
         jack_default_audio_sample_t *outBuf_R,
         jack_nframes_t nframes
       ) {
         for(unsigned int i = 0; i < nframes; i++) {
-          float smp[2] = {0.0, 0.0};
-
           for(int j = 0; j < NUM_INPUTS; j++) {
-            inputs[j]->write(inBufArray[j][i]);
+            inputs[j]->tick();
+            #ifndef DEVMODE
+              inputs[j]->write(inBufArray[j][i] * 32768.0);
+            #endif
           }
 
-          // TODO: fix Panner.getSample()
-          smp[0] = panner.getSample()[0];
-          smp[1] = panner.getSample()[1];
+          #ifdef DEVMODE
+            voice1.tick();
+          #endif
+
+          // Run the panning algorithm
+          panner.process();
+          reverb_L.process();
+          reverb_R.process();
+
+          // Get the processed samples and write to output
+          if(!bypass) {
+            outBuf_L[i] = (((revBusL.getCurrentSample() + revBusL.readBack(1)) * 0.25) + (outputL.getCurrentSample() * 0.5)) / 32768.0;
+            outBuf_R[i] = (((revBusR.getCurrentSample() + revBusR.readBack(1)) * 0.25) + (outputR.getCurrentSample() * 0.5)) / 32768.0;
+          } else {
+//            outBuf_L[i] = revBusL.getCurrentSample() / 32768.0;
+            outBuf_L[i] = inputs[0]->getCurrentSample() / 32768.0;
+//            outBuf_R[i] = revBusR.getCurrentSample() / 32768.0;
+            outBuf_R[i] = inputs[0]->getCurrentSample() / 32768.0;
+          }
 
           panner.tick();
-
-          outBuf_L[i] = smp[0];
-          outBuf_R[i] = smp[1];
+          reverb_L.tick();
+          reverb_R.tick();
         }
         return 0;
     };
     jack.autoConnect();
 
-    verbose("Setup done!");
-
     bool running = true;
     while(running) {
-      panning += 0.00001;
-      if (panning > 1) {
-        panning = -1;
-      }
+      char cmd;
+      std::cout << "Bypass: ";
+      std::cin >> cmd;
+
+      bypass = cmd == 't';
+
+      std::cout << "bypass is now " << bypass << std::endl;
     }
 
 //    outputL.write(filterL.process() * pan.gainCalL(angleDeg, panning));

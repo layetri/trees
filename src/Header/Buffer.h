@@ -22,14 +22,19 @@ public:
 
     void write(int16_t sample);
     void writeAhead(int16_t sample, int places);
+    void writeAddition(int16_t sample);
+
+    void tick();
+    void flush();
 
     int getPosition();
     int getSize();
-    void tick();
+    std::string getName();
 
     int16_t getSample(int sample_position);
     int16_t getCurrentSample();
     int16_t readAhead(int places);
+    int16_t readBack(int places);
 
     int16_t& operator[] (int index) {
       return data[index];
@@ -40,6 +45,8 @@ private:
     int size;
     int position;
     std::string name;
+
+    bool full_cycle_flag;
 };
 
 #endif //SNOWSTORM_BUFFER_H

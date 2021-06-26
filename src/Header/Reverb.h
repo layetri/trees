@@ -8,6 +8,7 @@
 #include "DelayLine.h"
 #include "LowPassFilter.h"
 #include "Global.h"
+#include <vector>
 
 #if defined(PLATFORM_TEENSY_40)
   #include <Arduino.h>
@@ -34,7 +35,7 @@ class Reverb {
 
     LowPassFilter *lpf;
 
-    DelayLine *dl[10];
+    std::vector<DelayLine*> dl;
 
     int dl_size;
     int samplerate;

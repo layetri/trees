@@ -25,10 +25,8 @@ Reverb::Reverb(float tail, int samplerate, Buffer *input, Buffer *output) {
   }
 
   for(int i = 0; i < dl_size; i++) {
-    dl[i] = new DelayLine((int) (this->tail * pow(0.9, i)), 1.0 - (pow(0.8, i) - 0.05), input);
+    dl.push_back(new DelayLine((int) (this->tail * pow(0.9, i)), 1.0 - (pow(0.8, i) - 0.05), input));
   }
-
-//  calculateRatios();
 
   // Create a low pass filter
   lpf = new LowPassFilter(1200.0, samplerate, y, output);
@@ -58,9 +56,8 @@ void Reverb::process() {
   for(int i = 0; i < dl_size; i++) {
     smp += dl[i]->process();
   }
-  smp = smp / dl_size;
 
-//  smp = dl[0]->process() * n1 + dl[1]->process() * n2 + dl[2]->process() * n3 + dl[3]->process() * n4;
+  smp = ((smp / dl_size) * 0.4 + y->readBack(1) * 0.6);
   y->write(smp);
 //  lpf->process();
   output->write(y->getCurrentSample());

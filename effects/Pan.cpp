@@ -1,4 +1,4 @@
-#include "Header/Pan.h"
+#include "Pan.h"
 #define TWO_PI (2 * M_PI)
 
 PanningInterface::PanningInterface(Buffer** buffers, Buffer* n_output_left, Buffer* n_output_right) {
@@ -12,9 +12,6 @@ PanningInterface::PanningInterface(Buffer** buffers, Buffer* n_output_left, Buff
 }
 
 PanningInterface::~PanningInterface() {
-  delete output_left;
-  delete output_right;
-
   for(auto& item : objects) {
     delete item;
   }
@@ -50,13 +47,17 @@ float PanningInterface::gainCalR() {
 	return gainR;
 }
 
-float *PanningInterface::getSample() {
-  float smp[2] = {0.0, 0.0};
-  return smp;
-}
-
-void PanningInterface::tick() {
+void PanningInterface::process() {
   for(auto& channel : objects) {
     channel->processOutputSample();
   }
+}
+
+void PanningInterface::tick() {
+  // TODO: Implement Flush-and-Add
+  output_left->tick();
+  output_right->tick();
+
+  output_left->flush();
+  output_right->flush();
 }

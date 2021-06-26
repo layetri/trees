@@ -33,7 +33,7 @@ class PanningInterface {
 	  void setPanning(float panning);
 	  void updateAnglePanning();
 
-	  float* getSample();
+	  void process();
 	  void tick();
 
     //Methods

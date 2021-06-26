@@ -11,6 +11,7 @@
 // Include project dependencies
 #include "Buffer.h"
 #include "Analyzer.h"
+#include <iostream>
 
 // Include platform dependencies
 #if defined(PLATFORM_TEENSY_40)
@@ -28,8 +29,6 @@ class SpatialObject {
     void processOutputSample();
 
     void calcGain();
-    void calcGainLeft();
-    void calcGainRight();
 
   private:
     // Define variables
@@ -39,8 +38,11 @@ class SpatialObject {
     Analyzer* analyzer;
 
     Complex location;
+    float* loc_flt;
+
     float gain_left;
     float gain_right;
+    int16_t sample_left, sample_right;
 };
 
 

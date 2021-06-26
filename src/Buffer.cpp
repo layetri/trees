@@ -8,6 +8,8 @@ Buffer::Buffer(int length, std::string name) {
   data = new int16_t [length];
   size = length;
   position = 0;
+  full_cycle_flag = false;
+
   this->name = name;
 }
 
@@ -21,6 +23,10 @@ int Buffer::getSize() {
 
 int Buffer::getPosition() {
   return position;
+}
+
+std::string Buffer::getName() {
+  return name;
 }
 
 int16_t Buffer::getSample(int sample_position) {
@@ -42,12 +48,17 @@ void Buffer::tick() {
   if(position < size) {
     position++;
   } else {
+    if(!full_cycle_flag) full_cycle_flag = true;
     position -= size;
   }
 }
 
 void Buffer::write(int16_t sample) {
   data[position] = sample;
+}
+
+void Buffer::writeAddition(int16_t sample) {
+  data[position] += sample;
 }
 
 void Buffer::writeAhead(int16_t sample, int places) {
@@ -57,3 +68,23 @@ void Buffer::writeAhead(int16_t sample, int places) {
 int16_t Buffer::readAhead(int places) {
   return data[position + places];
 }
+
+int16_t Buffer::readBack(int places) {
+  int pos = position - places;
+//  std::cout << name << ": " << pos << " " << data[pos] << std::endl;
+  if(pos < 0) {
+    if(full_cycle_flag) {
+      pos = size + pos;
+    } else {
+      return 0;
+    }
+  }
+
+  return data[pos];
+}
+
+void Buffer::flush() {
+  data[position] = 0;
+}
+
+

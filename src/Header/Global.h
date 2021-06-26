@@ -6,7 +6,8 @@
 #define CAVES_GLOBAL_H
 
 // Project-specific global code goes here!
-#define NUM_INPUTS 6
+#define NUM_INPUTS 1
+#define FASTMODE
 
 #include <complex>
 #include <valarray>

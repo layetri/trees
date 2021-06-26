@@ -18,6 +18,7 @@ class Analyzer {
 
     void process();
     Complex getComplexPair();
+    float* getFloatValues();
     void fft(CArray& chunk);
 
   private:
@@ -26,6 +27,7 @@ class Analyzer {
     Complex value_pair;
     double x, y, z;
     int fft_size;
+    float xz[2] {0,0};
 };
 
 

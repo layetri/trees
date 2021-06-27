@@ -8,8 +8,8 @@ Caves is designed to work both as a standalone application as well as a Eurorack
 ### How to use
 You literally put sound into it. That's all. No parameters, no knobs, no setup. Caves works plug and play with all your sounds.
 
-<small>You do, however, need the JACK Audio Connection Kit, which can be found [here](https://jackaudio.org).</small><br>
-<small>Should you want to use a different number of input ports, this can be achieved by changing the `NUM_INPUTS` macro in `/src/Header/global.h` and re-compiling.
+- You do, however, need the JACK Audio Connection Kit, which can be found [here](https://jackaudio.org).
+- Should you want to use a different number of input ports, this can be achieved by changing the `NUM_INPUTS` macro in `/src/Header/global.h` and re-compiling.
 
 ### Credits
 - Caves uses an FFT algorithm taken from [here](https://rosettacode.org/wiki/Fast_Fourier_transform#C.2B.2B).

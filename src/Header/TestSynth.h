@@ -17,37 +17,52 @@ class Synth {
     Synth(float frequency, int samplerate, Buffer* output) {
       out_buffer = output;
       this->samplerate = samplerate;
-      setFrequency(frequency);
+      setFrequency(mtof(steps[0]));
 
       sample = 0;
       phase = 0.0;
       step = 0;
       cnt = 0;
+
+      max = 2000;
+      min = 50;
+      direction = 0.001;
+      f = min;
     };
     ~Synth() {};
 
     // Generate a sample and write to output buffer.
     void tick() {
-      cnt++;
-//      if(cnt < samplerate / 2) {
-        sample = (int16_t) (sin(phase * M_PI * 2.0) * 32768.0);
-        out_buffer->write(sample);
+      sample = (int16_t) (sin(phase * M_PI * 2.0) * 32768.0);
+      out_buffer->write(sample * gain[step]);
 
-        phase += phase_step;
-        if (phase > 1.0) {
-          phase -= 1.0;
+      phase += phase_step;
+      if (phase > 1.0) {
+        phase -= 1.0;
+      }
+
+      if(!sweeping) {
+        cnt++;
+        if (cnt > samplerate) {
+          cnt = 0;
+          step++;
+          if (step > 5) step = 0;
+
+          setFrequency(mtof(steps[step]));
         }
-//      }
-
-
-      if(cnt > samplerate) {
-        cnt = 0;
-        step++;
-        if(step > 3) step = 0;
-
-        setFrequency(mtof(steps[step]));
+      } else {
+        sweep();
       }
     };
+
+    void sweep() {
+      f += direction;
+
+      if(f > max || f < min) {
+        direction *= -1;
+      }
+      setFrequency(f);
+    }
 
     void setFrequency(float n_frequency) {
       frequency = n_frequency;
@@ -69,7 +84,12 @@ class Synth {
 
     int cnt;
     int step;
-    int steps[4] {60, 55, 53, 58};
+    int steps[6] {36, 48, 60, 72, 84, 96};
+    float gain[6] {0.5, 0.55, 0.6, 0.65, 0.8, 1.0};
+
+    float f, direction;
+    int min, max;
+    bool sweeping = true;
 };
 
 #endif //CAVES_TESTSYNTH_H

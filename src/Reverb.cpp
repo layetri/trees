@@ -14,6 +14,7 @@ Reverb::Reverb(float tail, int samplerate, Buffer *input, Buffer *output) {
   // Calculate delay times, feedback rates and gain ratio
   this->samplerate = samplerate;
   this->tail = tail * samplerate / 1000;
+  sample = 0;
 
   // Create various delay lines
   if(tail >= 2000 && tail < 10000) {
@@ -25,11 +26,11 @@ Reverb::Reverb(float tail, int samplerate, Buffer *input, Buffer *output) {
   }
 
   for(int i = 0; i < dl_size; i++) {
-    dl.push_back(new DelayLine((int) (this->tail * pow(0.9, i)), 1.0 - (pow(0.8, i) - 0.05), input));
+    dl.push_back(new DelayLine((int) (this->tail * pow(0.9, i) + 100), 1.0 - (pow(0.8, i) - 0.05), input));
   }
 
   // Create a low pass filter
-  lpf = new LowPassFilter(1200.0, samplerate, y, output);
+//  lpf = new LowPassFilter(1200.0, samplerate, y, output);
 }
 
 Reverb::~Reverb() {
@@ -47,18 +48,19 @@ void Reverb::tick() {
   }
 
   y->tick();
-  lpf->tick();
+//  lpf->tick();
 }
 
 void Reverb::process() {
-  int16_t smp = 0;
+  int smp = 0;
 
   for(int i = 0; i < dl_size; i++) {
     smp += dl[i]->process();
   }
 
-  smp = ((smp / dl_size) * 0.4 + y->readBack(1) * 0.6);
-  y->write(smp);
+//  sample = (int16_t) ((smp / dl_size) * 0.4 + sample * 0.6);
+  sample = (int16_t) (smp / dl_size);
+  y->write(sample);
 //  lpf->process();
   output->write(y->getCurrentSample());
 }

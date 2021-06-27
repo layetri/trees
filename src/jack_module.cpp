@@ -13,7 +13,7 @@
   #include <mutex>
   #include <unistd.h> // usleep
   //TEMP - remove
-  #include "math.h"
+  #include <cmath>
   #include "Header/jack_module.h"
 
   // prototypes & globals

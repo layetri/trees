@@ -52,21 +52,27 @@
   #include "Header/ControlInput.h"
   #include "Header/jack_module.h"
 
-  #define angleDeg 45
+#include <chrono>
 
   int main() {
+    int samplerate = 44100;
+
     // Do Jack setup
     JackModule jack;
-    jack.init("caves");
-    int samplerate = jack.getSamplerate();
-    if(samplerate == 0) {
-      samplerate = 44100;
+    try {
+      jack.init("_localrun1");
+      samplerate = jack.getSamplerate();
+      if (samplerate == 0) {
+        samplerate = 44100;
+      }
+    } catch(std::bad_function_call e) {
+      std::cout << e.what() << std::endl;
     }
 
     // Create input array for 6 input channels
-    Buffer* inputs[6];
+    Buffer* inputs[NUM_INPUTS];
     for(int i = 0; i < NUM_INPUTS; i++) {
-      inputs[i] = new Buffer(samplerate, &"input-"[i]);
+      inputs[i] = new Buffer(samplerate, "input");
     }
 
     // Initialize output busses and FX
@@ -75,9 +81,12 @@
     Buffer outputL(samplerate, "output_L");
     Buffer outputR(samplerate, "output_R");
 
-    Reverb reverb_L(4000., samplerate, &revBusL, &outputL);
-    Reverb reverb_R(4000., samplerate, &revBusR, &outputR);
+//    Reverb reverb_L(8000., samplerate, &revBusL, &outputL);
+//    Reverb reverb_R(8000., samplerate, &revBusR, &outputR);
+    verbose("init done");
 
+    DelayLine dl_L(9000, 0.8, &revBusL);
+    DelayLine dl_R(8900, 0.8, &revBusR);
 
     // For testing purposes, initialize internal synth
     Synth voice1(220.0, samplerate, inputs[0]);
@@ -95,16 +104,18 @@
     ci.import(new Keymap('q'));
     ci.import(new Keymap('w'));
 
+    verbose("initialization done");
     bool bypass = false;
 
     // Assign the Jack callback function
-    jack.onProcess = [&panner, &inputs, &revBusL, &revBusR, &outputL, &outputR, &reverb_L, &reverb_R, &bypass, &voice1](
+    jack.onProcess = [&panner, &inputs, &revBusL, &revBusR, &outputL, &outputR, &dl_L, &dl_R, &bypass, &voice1](
         jack_default_audio_sample_t **inBufArray,
         jack_default_audio_sample_t *outBuf_L,
         jack_default_audio_sample_t *outBuf_R,
         jack_nframes_t nframes
       ) {
         for(unsigned int i = 0; i < nframes; i++) {
+//          auto start = std::chrono::high_resolution_clock::now();
           for(int j = 0; j < NUM_INPUTS; j++) {
             inputs[j]->tick();
             #ifndef DEVMODE
@@ -118,23 +129,40 @@
 
           // Run the panning algorithm
           panner.process();
-          reverb_L.process();
-          reverb_R.process();
+//          reverb_L.process();
+//          reverb_R.process();
+          outputL.write(dl_L.process());
+          outputR.write(dl_R.process());
 
           // Get the processed samples and write to output
           if(!bypass) {
-            outBuf_L[i] = (((revBusL.getCurrentSample() + revBusL.readBack(1)) * 0.25) + (outputL.getCurrentSample() * 0.5)) / 32768.0;
-            outBuf_R[i] = (((revBusR.getCurrentSample() + revBusR.readBack(1)) * 0.25) + (outputR.getCurrentSample() * 0.5)) / 32768.0;
+            outBuf_L[i] = (revBusL.getCurrentSample() * 0.3 +
+                revBusL.readBack(1) * 0.3 +
+                outputL.getCurrentSample() * 0.2 +
+                outputL.readBack(1) * 0.2) / 32768.0;
+            outBuf_R[i] = (revBusR.getCurrentSample() * 0.3 +
+                revBusR.readBack(1) * 0.3 +
+                outputR.getCurrentSample() * 0.2 +
+                outputR.readBack(1) * 0.2) / 32768.0;
+//            outBuf_R[i] = (((revBusR.getCurrentSample() + revBusR.readBack(1)) * 0.5) + (outputR.getCurrentSample() * 0.5)) / 32768.0;
           } else {
-//            outBuf_L[i] = revBusL.getCurrentSample() / 32768.0;
-            outBuf_L[i] = inputs[0]->getCurrentSample() / 32768.0;
-//            outBuf_R[i] = revBusR.getCurrentSample() / 32768.0;
-            outBuf_R[i] = inputs[0]->getCurrentSample() / 32768.0;
+            outBuf_L[i] = revBusL.getCurrentSample() / 32768.0;
+//            outBuf_L[i] = inputs[0]->getCurrentSample() / 32768.0;
+            outBuf_R[i] = revBusR.getCurrentSample() / 32768.0;
+//            outBuf_R[i] = inputs[0]->getCurrentSample() / 32768.0;
           }
 
           panner.tick();
-          reverb_L.tick();
-          reverb_R.tick();
+//          reverb_L.tick();
+//          reverb_R.tick();
+          dl_L.tick();
+          dl_R.tick();
+
+//          auto stop = std::chrono::high_resolution_clock::now();
+//          auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+//          if(duration.count() > 22) {
+//            std::cout << "SpObj execution time: " << duration.count() << std::endl;
+//          }
         }
         return 0;
     };

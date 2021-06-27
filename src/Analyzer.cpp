@@ -8,11 +8,11 @@
 Analyzer::Analyzer(int size, Buffer* input) {
   buffer = input;
   fft_size = size;
+  fft2 = fft_size / 2;
+  f_inc = 44100.0 / fft_size;
+
   x = 0;
   z = 0;
-
-  verbose(input);
-  verbose(buffer);
 }
 
 Analyzer::~Analyzer() {}
@@ -21,68 +21,45 @@ Analyzer::~Analyzer() {}
 //  Analysis process
 // ========================================
 void Analyzer::process() {
-  // TODO: at bus error, it doesn't even get to here
-  //  -> investigate!!
-  CArray chunk(fft_size);
-  double freq_avg, amp_avg;
-  amp_avg = 0.0;
-  freq_avg = fft_size;
+  CArray chunk(fft2);
+
+  float val;
+  double freq_avg = 0.0, amp_avg = 0.0;
 
   // Do FFT analysis
-  for(int i = 0; i < fft_size/2; i++) {
-    // TODO: it dies here
-//    verbose("starting fft");
-//    verbose(buffer);
-
-    float val = (buffer->readBack((fft_size / 2) - i) / 65536.0) - 1.0;
+  for(int i = 0; i < fft_size; i++) {
+    val = (buffer->readBack((fft2) - i) / 65536.0) - 1.0;
 
     amp_avg += abs(val);
     chunk[i] = val;
   }
-  fft(chunk);
+  fft_opt(chunk);
 
 
   // Calculate weighed average of spectrum and amplitude
-  double loudest[2] = {0.0, 0.0};
-//    verbose("fft done");
-
-  for(int i = 1; i < fft_size/2; i++) {
-    freq_avg += (std::arg(chunk[i]) / M_PI) * std::abs(chunk[i]);
-    #ifndef FASTMODE
-      if(std::abs(chunk[i]) > loudest[1]) {
-        loudest[0] = i;
-        loudest[1] = std::abs(chunk[i]);
-      }
-//    std::cout << std::abs(chunk[i]) << " ";
-//    std::cout << "freq: " << std::arg(chunk[i]) / M_PI << ", amp: " << std::abs(chunk[i]) << std::endl;
-    #endif
+  int c = 0, f = 0;
+  for(int i = 0; i < 16000 / f_inc; i++) {
+    f += f_inc;
+    if (f > 100) {
+      freq_avg += (abs(std::arg(chunk[i]) / M_PI) * std::abs(chunk[i]));
+      c++;
+    }
   }
-//  std::cout << "loudest bin: " << loudest[0] << std::endl << std::endl;
-//  verbose("calc avg");
 
-  amp_avg = amp_avg / fft_size/2;
-  freq_avg = freq_avg / ((fft_size/2) - 1);
+  amp_avg = amp_avg / fft2;
+  freq_avg = abs(freq_avg) / c;
 
   // Calculate variables for spatialisation
-  // - Calculate Y value based on spectral information and amplitude
-  z = 0.5 * ((((freq_avg * 2.0) - 1.0) * amp_avg) + z);
-  #ifdef FASTMODE
-    xz[1] = z;
-  #else
-    value_pair.imag(z);
-  #endif
-//    verbose("calc z");
+  // - Calculate Z value based on spectral information and amplitude
+  // Z: [-1.0, 1.0]
+  z = (freq_avg * amp_avg) + 0.5 * z;
+  xz[1] = z;
 
   // - Calculate X value based on spectral information, LFO automation,
   //   and number of sources in given range
-  // TODO: Should this be here?
-  x = (0.8 * ((freq_avg * 2.0) - 1.0)) + (0.2 * x);
-  #ifdef FASTMODE
-    xz[0] = x;
-  #else
-    value_pair.real(x);
-  #endif
-//    verbose("calc x");
+  // X: [0.0, 1.0]
+  x = 0.15 * freq_avg + 0.85 * x;
+  xz[0] = x;
 }
 
 void Analyzer::fft(CArray& l_chunk) {
@@ -90,21 +67,22 @@ void Analyzer::fft(CArray& l_chunk) {
   // Borrowed from https://rosettacode.org/wiki/Fast_Fourier_transform#C.2B.2B
   const size_t N = l_chunk.size();
   if (N <= 1) return;
+  size_t N2 = N/2;
 
   // divide
-  CArray even = l_chunk[std::slice(0, N/2, 2)];
-  CArray odd = l_chunk[std::slice(1, N/2, 2)];
+  CArray even = l_chunk[std::slice(0, N2, 2)];
+  CArray odd = l_chunk[std::slice(1, N2, 2)];
 
   // conquer
   fft(even);
   fft(odd);
 
   // combine
-  for (size_t k = 0; k < N/2; ++k)
+  for (size_t k = 0; k < N2; ++k)
   {
     Complex t = std::polar(1.0, -2 * M_PI * k / N) * odd[k];
     l_chunk[k] = even[k] + t;
-    l_chunk[k+N/2] = even[k] - t;
+    l_chunk[k+N2] = even[k] - t;
   }
 }
 
@@ -114,4 +92,45 @@ Complex Analyzer::getComplexPair() {
 
 float *Analyzer::getFloatValues() {
   return xz;
+}
+
+// Cooley–Tukey FFT (but an optimized version)
+// Borrowed from https://rosettacode.org/wiki/Fast_Fourier_transform#C.2B.2B
+void Analyzer::fft_opt(CArray &chunk) {
+  // DFT
+  unsigned int N = chunk.size(), k = N, n;
+  double thetaT = 3.14159265358979323846264338328L / N;
+  Complex phiT = Complex(cos(thetaT), -sin(thetaT)), T;
+  while (k > 1) {
+    n = k;
+    k >>= 1;
+    phiT = phiT * phiT;
+    T = 1.0L;
+    for (unsigned int l = 0; l < k; l++) {
+      for (unsigned int a = l; a < N; a += n) {
+        unsigned int b = a + k;
+        Complex t = chunk[a] - chunk[b];
+        chunk[a] += chunk[b];
+        chunk[b] = t * T;
+      }
+      T *= phiT;
+    }
+  }
+  // Decimate
+  unsigned int m = (unsigned int)log2(N);
+  for (unsigned int a = 0; a < N; a++) {
+    unsigned int b = a;
+    // Reverse bits
+    b = (((b & 0xaaaaaaaa) >> 1) | ((b & 0x55555555) << 1));
+    b = (((b & 0xcccccccc) >> 2) | ((b & 0x33333333) << 2));
+    b = (((b & 0xf0f0f0f0) >> 4) | ((b & 0x0f0f0f0f) << 4));
+    b = (((b & 0xff00ff00) >> 8) | ((b & 0x00ff00ff) << 8));
+    b = ((b >> 16) | (b << 16)) >> (32 - m);
+
+    if (b > a) {
+      Complex t = chunk[a];
+      chunk[a] = chunk[b];
+      chunk[b] = t;
+    }
+  }
 }

@@ -18,9 +18,18 @@ PanningInterface::~PanningInterface() {
 }
 
 void PanningInterface::process() {
+  int left = 0, right = 0;
   for(auto& channel : objects) {
-    channel->processOutputSample();
+    auto rtn_val = channel->processOutputSample();
+    left += rtn_val[0];
+    right += rtn_val[1];
   }
+
+  left = 0.3 * (left / NUM_INPUTS) + 0.7 * output_left->readBack(1);
+  right = 0.3 * (right / NUM_INPUTS) + 0.7 * output_right->readBack(1);
+
+  output_left->write(left);
+  output_right->write(right);
 }
 
 void PanningInterface::tick() {

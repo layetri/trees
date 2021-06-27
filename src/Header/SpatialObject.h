@@ -26,7 +26,7 @@ class SpatialObject {
     SpatialObject(Buffer* input, Buffer* left, Buffer* right);
     ~SpatialObject();
 
-    void processOutputSample();
+    int16_t* processOutputSample();
 
     void calcGain();
 
@@ -37,12 +37,11 @@ class SpatialObject {
     Buffer* output_right;
     Analyzer* analyzer;
 
-    Complex location;
-    float* loc_flt;
-
-    float gain_left;
-    float gain_right;
     int16_t sample_left, sample_right;
+    int16_t sample[2];
+    float* location;
+    float gain_left, gain_right;
+    int cnt;
 };
 
 

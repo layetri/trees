@@ -20,13 +20,15 @@ class Analyzer {
     Complex getComplexPair();
     float* getFloatValues();
     void fft(CArray& chunk);
+    void fft_opt(CArray& chunk);
 
   private:
     Buffer* buffer;
 
     Complex value_pair;
     double x, y, z;
-    int fft_size;
+    int fft_size, fft2;
+    float f_inc;
     float xz[2] {0,0};
 };
 

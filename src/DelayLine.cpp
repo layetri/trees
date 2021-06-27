@@ -31,7 +31,7 @@ void DelayLine::tick() {
 int16_t DelayLine::process() {
   int16_t sample;
   // Run the delay line
-  sample = x->getSample(position - delayTime) + ((y->getSample(position - delayTime - 1) + y->getSample(position - delayTime)) * 0.5 * feedback);
+  sample = 0.3 * x->getSample(position - delayTime) + 0.7 * x->getSample(position - delayTime - 1) + ((y->getSample(position - delayTime - 1) + y->getSample(position - delayTime)) * 0.5 * feedback);
 
   // Store the sample in the output buffer
   y->write(sample);

@@ -52,8 +52,6 @@
   #include "Header/ControlInput.h"
   #include "Header/jack_module.h"
 
-#include <chrono>
-
   int main() {
     int samplerate = 44100;
 
@@ -62,11 +60,12 @@
     try {
       jack.init("_localrun1");
       samplerate = jack.getSamplerate();
-      if (samplerate == 0) {
-        samplerate = 44100;
-      }
     } catch(std::bad_function_call e) {
       std::cout << e.what() << std::endl;
+    }
+
+    if (samplerate == 0) {
+      samplerate = 44100;
     }
 
     // Create input array for 6 input channels
@@ -85,11 +84,12 @@
 //    Reverb reverb_R(8000., samplerate, &revBusR, &outputR);
     verbose("init done");
 
-    DelayLine dl_L(9000, 0.8, &revBusL);
-    DelayLine dl_R(8900, 0.8, &revBusR);
+    DelayLine dl_L(9000, 0.85, &revBusL);
+    DelayLine dl_R(8900, 0.85, &revBusR);
 
     // For testing purposes, initialize internal synth
-    Synth voice1(220.0, samplerate, inputs[0]);
+    Synth voice1(0.0004, 50, samplerate, inputs[0]);
+    Synth voice2(0.004, 400, samplerate, inputs[1]);
 
 
     // Initialize panning component
@@ -108,23 +108,23 @@
     bool bypass = false;
 
     // Assign the Jack callback function
-    jack.onProcess = [&panner, &inputs, &revBusL, &revBusR, &outputL, &outputR, &dl_L, &dl_R, &bypass, &voice1](
+    jack.onProcess = [&panner, &inputs, &revBusL, &revBusR, &outputL, &outputR, &dl_L, &dl_R, &bypass, &voice1, &voice2](
         jack_default_audio_sample_t **inBufArray,
         jack_default_audio_sample_t *outBuf_L,
         jack_default_audio_sample_t *outBuf_R,
         jack_nframes_t nframes
       ) {
         for(unsigned int i = 0; i < nframes; i++) {
-//          auto start = std::chrono::high_resolution_clock::now();
           for(int j = 0; j < NUM_INPUTS; j++) {
-            inputs[j]->tick();
             #ifndef DEVMODE
               inputs[j]->write(inBufArray[j][i] * 32768.0);
             #endif
+            inputs[j]->tick();
           }
 
           #ifdef DEVMODE
             voice1.tick();
+            voice2.tick();
           #endif
 
           // Run the panning algorithm
@@ -144,12 +144,9 @@
                 revBusR.readBack(1) * 0.3 +
                 outputR.getCurrentSample() * 0.2 +
                 outputR.readBack(1) * 0.2) / 32768.0;
-//            outBuf_R[i] = (((revBusR.getCurrentSample() + revBusR.readBack(1)) * 0.5) + (outputR.getCurrentSample() * 0.5)) / 32768.0;
           } else {
             outBuf_L[i] = revBusL.getCurrentSample() / 32768.0;
-//            outBuf_L[i] = inputs[0]->getCurrentSample() / 32768.0;
             outBuf_R[i] = revBusR.getCurrentSample() / 32768.0;
-//            outBuf_R[i] = inputs[0]->getCurrentSample() / 32768.0;
           }
 
           panner.tick();
@@ -157,12 +154,6 @@
 //          reverb_R.tick();
           dl_L.tick();
           dl_R.tick();
-
-//          auto stop = std::chrono::high_resolution_clock::now();
-//          auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-//          if(duration.count() > 22) {
-//            std::cout << "SpObj execution time: " << duration.count() << std::endl;
-//          }
         }
         return 0;
     };

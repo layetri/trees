@@ -33,7 +33,6 @@ void PanningInterface::process() {
 }
 
 void PanningInterface::tick() {
-  // TODO: Implement Flush-and-Add
   output_left->tick();
   output_right->tick();
 

@@ -21,18 +21,15 @@ SpatialObject::~SpatialObject() {}
 
 int16_t* SpatialObject::processOutputSample() {
   // Apply gain factors to current sample
-  sample_left = ((input_buffer->getCurrentSample() * gain_left) + sample_left) / (NUM_INPUTS * 2.0);
-  sample_right = ((input_buffer->getCurrentSample() * gain_right) + sample_right) / (NUM_INPUTS * 2.0);
+  sample_left = ((input_buffer->getCurrentSample() * gain_left) + sample_left) * 0.5;
+  sample_right = ((input_buffer->getCurrentSample() * gain_right) + sample_right) * 0.5;
 
   // TODO: implement sample processing
-  //  - filtering
+  //  - filtering (v2.0)
   //    - use angle/distance
-  //  - phase modulation
+  //  - phase modulation (v2.0?)
 
-  // Write processed samples to outputs
-//  output_left->writeAddition(sample_left);
-//  output_right->writeAddition(sample_right);
-
+  // Write processed samples to output pointer
   sample[0] = sample_left;
   sample[1] = sample_right;
 
@@ -53,8 +50,7 @@ int16_t* SpatialObject::processOutputSample() {
 
 void SpatialObject::calcGain() {
   // Use Euclidean distance to calculate abs distance
-//  double gain_mod = sqrt(pow(location[0] / M_PI, 2) + pow(location[1], 2)) / M_PI;
-  double gain_mod = 1.0;
+  double gain_mod = sqrt(pow(location[0] / M_PI, 2) + pow(location[1], 2)) / M_PI;
   // Map L/R distribution from x axis value (with bias cause frequency spectrum is weird)
   double gain = (location[0] * M_PI) - 0.2;
   gain = ((gain < 0) * 0.0) + ((gain > 1.0) * 1.0) + ((gain > 0.0 && gain < 1.0) * gain);

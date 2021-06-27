@@ -14,7 +14,7 @@
 
 class Synth {
   public:
-    Synth(float frequency, int samplerate, Buffer* output) {
+    Synth(float dir, float start, int samplerate, Buffer* output) {
       out_buffer = output;
       this->samplerate = samplerate;
       setFrequency(mtof(steps[0]));
@@ -24,10 +24,10 @@ class Synth {
       step = 0;
       cnt = 0;
 
-      max = 2000;
+      max = 500;
       min = 50;
-      direction = 0.001;
-      f = min;
+      direction = dir;
+      f = start;
     };
     ~Synth() {};
 

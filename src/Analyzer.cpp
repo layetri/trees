@@ -17,6 +17,10 @@ Analyzer::Analyzer(int size, Buffer* input) {
 
 Analyzer::~Analyzer() {}
 
+float *Analyzer::getFloatValues() {
+  return xz;
+}
+
 // ========================================
 //  Analysis process
 // ========================================
@@ -33,7 +37,7 @@ void Analyzer::process() {
     amp_avg += abs(val);
     chunk[i] = val;
   }
-  fft_opt(chunk);
+  fft(chunk);
 
 
   // Calculate weighed average of spectrum and amplitude
@@ -62,41 +66,9 @@ void Analyzer::process() {
   xz[0] = x;
 }
 
-void Analyzer::fft(CArray& l_chunk) {
-  // Cooley–Tukey FFT (in-place, divide-and-conquer)
-  // Borrowed from https://rosettacode.org/wiki/Fast_Fourier_transform#C.2B.2B
-  const size_t N = l_chunk.size();
-  if (N <= 1) return;
-  size_t N2 = N/2;
-
-  // divide
-  CArray even = l_chunk[std::slice(0, N2, 2)];
-  CArray odd = l_chunk[std::slice(1, N2, 2)];
-
-  // conquer
-  fft(even);
-  fft(odd);
-
-  // combine
-  for (size_t k = 0; k < N2; ++k)
-  {
-    Complex t = std::polar(1.0, -2 * M_PI * k / N) * odd[k];
-    l_chunk[k] = even[k] + t;
-    l_chunk[k+N2] = even[k] - t;
-  }
-}
-
-Complex Analyzer::getComplexPair() {
-  return value_pair;
-}
-
-float *Analyzer::getFloatValues() {
-  return xz;
-}
-
 // Cooley–Tukey FFT (but an optimized version)
 // Borrowed from https://rosettacode.org/wiki/Fast_Fourier_transform#C.2B.2B
-void Analyzer::fft_opt(CArray &chunk) {
+void Analyzer::fft(CArray &chunk) {
   // DFT
   unsigned int N = chunk.size(), k = N, n;
   double thetaT = 3.14159265358979323846264338328L / N;

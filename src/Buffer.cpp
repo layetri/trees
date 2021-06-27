@@ -35,6 +35,8 @@ int16_t Buffer::getSample(int sample_position) {
 
   if(sample_position < 0) {
     return this->operator[](size + sample_position);
+  } else if(sample_position > size) {
+    return this->operator[](sample_position % size);
   } else {
     return this->operator[](sample_position);
   }
@@ -66,21 +68,11 @@ void Buffer::writeAhead(int16_t sample, int places) {
 }
 
 int16_t Buffer::readAhead(int places) {
-  return data[position + places];
+  return getSample(position + places);
 }
 
 int16_t Buffer::readBack(int places) {
-  int pos = position - places;
-//  std::cout << name << ": " << pos << " " << data[pos] << std::endl;
-  if(pos < 0) {
-    if(full_cycle_flag) {
-      pos = size + pos;
-    } else {
-      return 0;
-    }
-  }
-
-  return data[pos];
+  return getSample(position - places);
 }
 
 void Buffer::flush() {

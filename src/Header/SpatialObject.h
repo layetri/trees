@@ -23,18 +23,15 @@
 
 class SpatialObject {
   public:
-    SpatialObject(Buffer* input, Buffer* left, Buffer* right);
+    SpatialObject(Buffer* input);
     ~SpatialObject();
 
     int16_t* processOutputSample();
-
     void calcGain();
 
   private:
     // Define variables
     Buffer* input_buffer;
-    Buffer* output_left;
-    Buffer* output_right;
     Analyzer* analyzer;
 
     int16_t sample_left, sample_right;

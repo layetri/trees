@@ -2,13 +2,17 @@
 
 #include "Header/Global.h"
 #include "Header/Buffer.h"
+#include "Header/DelayLine.h"
 
 #include "Header/LowPassFilter.h"
 #include "Header/PanningInterface.h"
-#include "Header/Reverb.h"
 
-#include "Header/TestSynth.h"
+#ifdef DEVMODE
+  #include "Header/TestSynth.h"
+#endif
 
+// Compilation target TEENSY40 hasn't been implemented yet
+// DO NOT USE!
 #if defined(PLATFORM_TEENSY_40)
   #include "Header/AudioInput.h"
   #include <Arduino.h>
@@ -49,7 +53,6 @@
     outputR.write(filterR.process() * pan.gainCalR(angleDeg, panning));
   }
 #elif defined(PLATFORM_DARWIN_X86)
-  #include "Header/ControlInput.h"
   #include "Header/jack_module.h"
 
   int main() {
@@ -80,36 +83,29 @@
     Buffer outputL(samplerate, "output_L");
     Buffer outputR(samplerate, "output_R");
 
-//    Reverb reverb_L(8000., samplerate, &revBusL, &outputL);
-//    Reverb reverb_R(8000., samplerate, &revBusR, &outputR);
-    verbose("init done");
-
     DelayLine dl_L(9000, 0.85, &revBusL);
     DelayLine dl_R(8900, 0.85, &revBusR);
 
-    // For testing purposes, initialize internal synth
-    Synth voice1(0.0004, 50, samplerate, inputs[0]);
-    Synth voice2(0.004, 400, samplerate, inputs[1]);
+    #ifdef DEVMODE
+      // For testing purposes, initialize internal synth
+      Synth voice1(0.0004, 50, samplerate, inputs[0]);
+      Synth voice2(0.004, 400, samplerate, inputs[1]);
+    #endif
 
 
     // Initialize panning component
-    float panning = -1;
     PanningInterface panner(inputs, &revBusL, &revBusR);
 
-    ControllerInterface ci;
-
-
-    // TODO: make universal Keymap class with "target" and "callback" arguments
-    ci.import(new Keymap('e'));
-    ci.import(new Keymap('q'));
-    ci.import(new Keymap('w'));
-
-    verbose("initialization done");
-    bool bypass = false;
-
     // Assign the Jack callback function
-    jack.onProcess = [&panner, &inputs, &revBusL, &revBusR, &outputL, &outputR, &dl_L, &dl_R, &bypass, &voice1, &voice2](
-        jack_default_audio_sample_t **inBufArray,
+    jack.onProcess = [&panner, &inputs,
+                      &revBusL, &revBusR,
+                      &outputL, &outputR,
+                      &dl_L, &dl_R,
+                        #ifdef DEVMODE
+                          &voice1, &voice2
+                        #endif
+                      ]
+        (jack_default_audio_sample_t **inBufArray,
         jack_default_audio_sample_t *outBuf_L,
         jack_default_audio_sample_t *outBuf_R,
         jack_nframes_t nframes
@@ -129,29 +125,23 @@
 
           // Run the panning algorithm
           panner.process();
-//          reverb_L.process();
-//          reverb_R.process();
+
+          // Process the delay lines
           outputL.write(dl_L.process());
           outputR.write(dl_R.process());
 
           // Get the processed samples and write to output
-          if(!bypass) {
-            outBuf_L[i] = (revBusL.getCurrentSample() * 0.3 +
-                revBusL.readBack(1) * 0.3 +
-                outputL.getCurrentSample() * 0.2 +
-                outputL.readBack(1) * 0.2) / 32768.0;
-            outBuf_R[i] = (revBusR.getCurrentSample() * 0.3 +
-                revBusR.readBack(1) * 0.3 +
-                outputR.getCurrentSample() * 0.2 +
-                outputR.readBack(1) * 0.2) / 32768.0;
-          } else {
-            outBuf_L[i] = revBusL.getCurrentSample() / 32768.0;
-            outBuf_R[i] = revBusR.getCurrentSample() / 32768.0;
-          }
+          outBuf_L[i] = (revBusL.getCurrentSample() * 0.3 +
+              revBusL.readBack(1) * 0.3 +
+              outputL.getCurrentSample() * 0.2 +
+              outputL.readBack(1) * 0.2) / 32768.0;
+          outBuf_R[i] = (revBusR.getCurrentSample() * 0.3 +
+              revBusR.readBack(1) * 0.3 +
+              outputR.getCurrentSample() * 0.2 +
+              outputR.readBack(1) * 0.2) / 32768.0;
 
           panner.tick();
-//          reverb_L.tick();
-//          reverb_R.tick();
+
           dl_L.tick();
           dl_R.tick();
         }
@@ -162,15 +152,14 @@
     bool running = true;
     while(running) {
       char cmd;
-      std::cout << "Bypass: ";
+      std::cout << "Command: ";
       std::cin >> cmd;
 
-      bypass = cmd == 't';
-
-      std::cout << "bypass is now " << bypass << std::endl;
+      switch(cmd) {
+        case('q') : {
+          running = false;
+        }
+      }
     }
-
-//    outputL.write(filterL.process() * pan.gainCalL(angleDeg, panning));
-//    outputR.write(filterR.process() * pan.gainCalR(angleDeg, panning));
   }
 #endif

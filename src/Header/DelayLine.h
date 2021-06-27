@@ -6,7 +6,6 @@
 #define _SNOWSTORM_DELAYLINE_H
 
 #include "Buffer.h"
-#include "LowPassFilter.h"
 #include "Global.h"
 
 #if defined(PLATFORM_TEENSY_40)

@@ -10,14 +10,14 @@ SOURCES=$(wildcard $(SRC_DIR)/*.cpp)
 OBJECTS=$(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SOURCES))
 
 # Make all
-all: _localrun
+all: caves
 
 # Link all
-_localrun: $(OBJECTS)
+caves: $(OBJECTS)
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS)
 
 # Separate rule for main.cpp since it doesn't have a header
-obj/main.o: src/main.cpp
+obj/main.o: src/main.cpp src/Header/Global.h src/Header/TestSynth.h
 	mkdir -p $(OBJ_DIR)
 	$(CC) -c $< $(CFLAGS) -o $@
 
@@ -27,8 +27,8 @@ obj/%.o: src/%.cpp src/Header/%.h
 
 # Install to system path
 install:
-	mv synth /usr/var/bin/
+	mv caves /usr/var/bin/
 
 # Clean up
 clean:
-	rm synth *.o
+	rm caves *.o

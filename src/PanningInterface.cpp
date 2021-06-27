@@ -7,7 +7,7 @@ PanningInterface::PanningInterface(Buffer** buffers, Buffer* n_output_left, Buff
 
   // Initialize desired number of input channels
   for(int i = 0; i < NUM_INPUTS; i++) {
-    objects[i] = new SpatialObject(buffers[i], output_left, output_right);
+    objects[i] = new SpatialObject(buffers[i]);
   }
 }
 

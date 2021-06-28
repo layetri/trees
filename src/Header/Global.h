@@ -7,7 +7,6 @@
 
 // Project-specific global code goes here!
 #define NUM_INPUTS 2
-#define FASTMODE
 
 #include <complex>
 #include <valarray>
@@ -18,7 +17,7 @@ typedef std::valarray<Complex> CArray;
 //  Global.h - Developer Tools
 //  © 2021 Daniël Kamp
 // =======================================
-#define DEVMODE
+//#define DEVMODE
 // Set platform to Darwin x86 (macOS)
 #define PLATFORM_DARWIN_X86
 

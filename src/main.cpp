@@ -99,9 +99,9 @@
     jack.onProcess = [&panner, &inputs,
                       &revBusL, &revBusR,
                       &outputL, &outputR,
-                      &dl_L, &dl_R,
+                      &dl_L, &dl_R
                         #ifdef DEVMODE
-                          &voice1, &voice2
+                          , &voice1, &voice2
                         #endif
                       ]
         (jack_default_audio_sample_t **inBufArray,

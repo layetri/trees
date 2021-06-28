@@ -10,8 +10,6 @@
 #include <cmath>
 #include "Buffer.h"
 
-#include <iostream>
-
 class Synth {
   public:
     Synth(float dir, float start, int samplerate, Buffer* output) {

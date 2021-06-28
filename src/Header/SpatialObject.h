@@ -11,7 +11,6 @@
 // Include project dependencies
 #include "Buffer.h"
 #include "Analyzer.h"
-#include <iostream>
 
 // Include platform dependencies
 #if defined(PLATFORM_TEENSY_40)

@@ -9,7 +9,6 @@
 
 #include "Buffer.h"
 #include "Global.h"
-#include <iostream>
 
 class Analyzer {
   public:

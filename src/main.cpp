@@ -4,7 +4,6 @@
 #include "Header/Buffer.h"
 #include "Header/DelayLine.h"
 
-#include "Header/LowPassFilter.h"
 #include "Header/PanningInterface.h"
 
 #ifdef DEVMODE

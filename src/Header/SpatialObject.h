@@ -27,9 +27,10 @@ class SpatialObject {
     ~SpatialObject();
 
     int16_t* processOutputSample();
-    void calcGain();
 
   private:
+    void calcGain();
+
     // Define variables
     Buffer* input_buffer;
     Analyzer* analyzer;

@@ -55,6 +55,16 @@ class Synth {
       }
     };
 
+    void setFrequency(float n_frequency) {
+      frequency = n_frequency;
+      phase_step = frequency / samplerate;
+    };
+
+  private:
+    float mtof(int note) {
+      return pow(2.0, (note - 69.0) / 12.0) * 440.0;
+    }
+
     void sweep() {
       f += direction;
 
@@ -64,16 +74,6 @@ class Synth {
       setFrequency(f);
     }
 
-    void setFrequency(float n_frequency) {
-      frequency = n_frequency;
-      phase_step = frequency / samplerate;
-    };
-
-    float mtof(int note) {
-      return pow(2.0, (note - 69.0) / 12.0) * 440.0;
-    }
-
-  private:
     Buffer* out_buffer;
     int16_t sample;
 

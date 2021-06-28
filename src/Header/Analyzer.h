@@ -18,9 +18,10 @@ class Analyzer {
 
     void process();
     float* getFloatValues();
+
+private:
     void fft(CArray& chunk);
 
-  private:
     Buffer* buffer;
 
     double x, z;

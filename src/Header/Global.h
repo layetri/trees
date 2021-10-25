@@ -13,6 +13,8 @@
 typedef std::complex<double> Complex;
 typedef std::valarray<Complex> CArray;
 
+typedef int16_t sample_t;
+
 // =======================================
 //  Global.h - Developer Tools
 //  © 2021 Daniël Kamp

@@ -20,7 +20,7 @@ class DelayLine {
     DelayLine(int delayTime, float feedback, Buffer *input);
     ~DelayLine();
 
-    int16_t process();
+    sample_t process();
     void tick();
 
     void setDelayTime(int delayTime);

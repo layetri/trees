@@ -25,7 +25,7 @@ class SpatialObject {
     SpatialObject(Buffer* input);
     ~SpatialObject();
 
-    int16_t* processOutputSample();
+    sample_t* processOutputSample();
 
   private:
     void calcGain();
@@ -34,8 +34,8 @@ class SpatialObject {
     Buffer* input_buffer;
     Analyzer* analyzer;
 
-    int16_t sample_left, sample_right;
-    int16_t sample[2];
+    sample_t sample_left, sample_right;
+    sample_t sample[2];
     float* location;
     float gain_left, gain_right;
     int cnt;

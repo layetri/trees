@@ -23,13 +23,12 @@ void DelayLine::tick() {
   if(position < x->getSize()) {
     position++;
   } else {
-    //std::cout << x->getSize() << "," << position << ": Delay line buffer wrap @ " << delayTime << std::endl;
     position -= x->getSize();
   }
 }
 
-int16_t DelayLine::process() {
-  int16_t sample;
+sample_t DelayLine::process() {
+  sample_t sample;
   // Run the delay line
   sample = 0.3 * x->getSample(position - delayTime) + 0.7 * x->getSample(position - delayTime - 1) + ((y->getSample(position - delayTime - 1) + y->getSample(position - delayTime)) * 0.5 * feedback);
 

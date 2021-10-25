@@ -5,7 +5,7 @@
 #include "Header/Buffer.h"
 
 Buffer::Buffer(int length, std::string name) {
-  data = new int16_t [length];
+  data = new sample_t [length];
   size = length;
   position = 0;
   full_cycle_flag = false;
@@ -29,7 +29,7 @@ std::string Buffer::getName() {
   return name;
 }
 
-int16_t Buffer::getSample(int sample_position) {
+sample_t Buffer::getSample(int sample_position) {
 //  int pos = ((sample_position > size || (sample_position * -1) > size) * sample_position % size) +
 //      ((sample_position < size && (sample_position * -1) < size) * sample_position);
 
@@ -42,7 +42,7 @@ int16_t Buffer::getSample(int sample_position) {
   }
 }
 
-int16_t Buffer::getCurrentSample() {
+sample_t Buffer::getCurrentSample() {
   return this->operator[](position);
 }
 
@@ -55,28 +55,34 @@ void Buffer::tick() {
   }
 }
 
-void Buffer::write(int16_t sample) {
+void Buffer::write(sample_t sample) {
   data[position] = sample;
 }
 
-void Buffer::writeAddition(int16_t sample) {
+void Buffer::writeAddition(sample_t sample) {
   data[position] += sample;
 }
 
-void Buffer::writeAhead(int16_t sample, int places) {
+void Buffer::writeAhead(sample_t sample, int places) {
   data[position + places] = sample;
 }
 
-int16_t Buffer::readAhead(int places) {
+sample_t Buffer::readAhead(int places) {
   return getSample(position + places);
 }
 
-int16_t Buffer::readBack(int places) {
+sample_t Buffer::readBack(int places) {
   return getSample(position - places);
 }
 
 void Buffer::flush() {
   data[position] = 0;
+}
+
+void Buffer::wipe() {
+  for(int i = 0; i < size; i++) {
+    data[i] = 0;
+  }
 }
 
 

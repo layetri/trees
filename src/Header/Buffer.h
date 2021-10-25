@@ -17,31 +17,32 @@
 
 class Buffer {
 public:
-    Buffer(int length, std::string name);
+    Buffer(int length, std::string name="Generic Buffer");
     ~Buffer();
 
-    void write(int16_t sample);
-    void writeAhead(int16_t sample, int places);
-    void writeAddition(int16_t sample);
+    void write(sample_t sample);
+    void writeAhead(sample_t sample, int places);
+    void writeAddition(sample_t sample);
 
     void tick();
     void flush();
+    void wipe();
 
     int getPosition();
     int getSize();
     std::string getName();
 
-    int16_t getSample(int sample_position);
-    int16_t getCurrentSample();
-    int16_t readAhead(int places);
-    int16_t readBack(int places);
+    sample_t getSample(int sample_position);
+    sample_t getCurrentSample();
+    sample_t readAhead(int places);
+    sample_t readBack(int places);
 
-    int16_t& operator[] (int index) {
+    sample_t& operator[] (int index) {
       return data[index];
     }
 
 private:
-    int16_t *data;
+    sample_t *data;
     int size;
     int position;
     std::string name;

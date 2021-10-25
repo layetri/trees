@@ -16,7 +16,7 @@ SpatialObject::SpatialObject(Buffer *input) {
 
 SpatialObject::~SpatialObject() {}
 
-int16_t* SpatialObject::processOutputSample() {
+sample_t* SpatialObject::processOutputSample() {
   if(cnt == FFT_SIZE) {
     // Run the analysis (FFT), get complex location of source
     analyzer->process();
